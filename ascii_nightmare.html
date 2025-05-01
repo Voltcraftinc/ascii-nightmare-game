@@ -1,0 +1,2588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII NIGHTMARE: The Endless Descent</title>
+    <style>
+        :root {
+            --primary-dark: #0a0a0a;
+            --primary-light: #f0f0f0;
+            --accent-red: #ff3333;
+            --accent-purple: #9900cc;
+            --accent-green: #33cc33;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--primary-dark);
+            color: var(--primary-light);
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+            cursor: none;
+        }
+        
+        canvas {
+    display: block;
+    image-rendering: pixelated;
+    z-index: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #loading-title {
+            font-size: 4rem;
+            color: var(--accent-red);
+            margin-bottom: 2rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { text-shadow: 0 0 10px rgba(255, 0, 0, 0.7); }
+            50% { text-shadow: 0 0 20px rgba(255, 0, 0, 1); }
+            100% { text-shadow: 0 0 10px rgba(255, 0, 0, 0.7); }
+        }
+
+        #loading-bar-container {
+            width: 80%;
+            max-width: 500px;
+            height: 30px;
+            border: 2px solid var(--accent-red);
+            padding: 2px;
+            margin-bottom: 1rem;
+        }
+
+        #loading-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--accent-red);
+            transition: width 0.5s;
+        }
+
+        #loading-text {
+            color: var(--primary-light);
+            font-size: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        /* Main Menu */
+        #main-menu {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 900;
+        }
+
+        #menu-title {
+            font-size: 5rem;
+            color: var(--accent-red);
+            margin-bottom: 3rem;
+            text-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
+        }
+
+        .menu-button {
+            background-color: transparent;
+            border: 2px solid var(--accent-red);
+            color: var(--primary-light);
+            padding: 1rem 2rem;
+            margin: 0.5rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+            width: 300px;
+            text-align: center;
+        }
+
+        .menu-button:hover {
+            background-color: var(--accent-red);
+            color: black;
+            transform: scale(1.05);
+        }
+
+        /* Character Creation */
+        #character-creation {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 800;
+        }
+
+        #creation-title {
+            font-size: 3rem;
+            color: var(--accent-red);
+            margin-bottom: 2rem;
+        }
+
+        .creation-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2rem;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        .creation-section h2 {
+            margin-bottom: 1rem;
+            color: var(--primary-light);
+        }
+
+        .char-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 1rem;
+            border: 2px solid transparent;
+        }
+
+        .char-option:hover, .char-option.selected {
+            border: 2px solid var(--accent-red);
+        }
+
+        .preview-area {
+            font-size: 2rem;
+            height: 150px;
+            width: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+            color: var(--primary-light);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .options-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .stat-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-name {
+            flex: 1;
+        }
+
+        .stat-bar-container {
+            flex: 2;
+            height: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 0 1rem;
+        }
+
+        .stat-bar {
+            height: 100%;
+            background-color: var(--accent-red);
+        }
+
+        .stat-value {
+            flex: 0 0 50px;
+            text-align: right;
+        }
+
+        .points-remaining {
+            margin-top: 1rem;
+            color: var(--accent-green);
+        }
+
+        #confirm-character {
+            background-color: var(--accent-green);
+            border: none;
+            color: black;
+            padding: 1rem 2rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            margin-top: 2rem;
+        }
+
+        /* Game UI */
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
+        #game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+        }
+
+        .ui-section {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--accent-red);
+        }
+
+        #health-bar-container {
+            width: 200px;
+            height: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin-top: 0.5rem;
+        }
+
+        #health-bar {
+            height: 100%;
+            width: 100%;
+            background-color: var(--accent-red);
+            transition: width 0.3s;
+        }
+
+        #xp-bar-container {
+            width: 200px;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin-top: 0.5rem;
+        }
+
+        #xp-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--accent-purple);
+            transition: width 0.3s;
+        }
+
+        #weapons-container {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .weapon {
+            padding: 0.5rem;
+            opacity: 0.5;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .weapon.active {
+            opacity: 1;
+            border-bottom: 2px solid var(--accent-red);
+        }
+
+        /* Game Over */
+        #game-over {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        #game-over-title {
+            font-size: 6rem;
+            color: var(--accent-red);
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 1);
+        }
+
+        #final-score {
+            font-size: 3rem;
+            color: var(--primary-light);
+            margin-bottom: 3rem;
+        }
+
+        /* Dialog Box */
+        #dialog-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 800px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--accent-red);
+            padding: 1rem;
+            display: none;
+            z-index: 500;
+        }
+
+        #dialog-text {
+            color: var(--primary-light);
+            font-size: 1.2rem;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        #dialog-continue {
+            color: var(--accent-red);
+            font-size: 1rem;
+            text-align: right;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Custom cursor */
+        #custom-cursor {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: transparent;
+            border: 2px solid var(--accent-red);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s ease;
+        }
+
+        /* Buffs display */
+        #buffs-container {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .buff {
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 1px solid;
+            padding: 5px 10px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .buff-timer {
+            margin-left: 10px;
+            font-size: 0.8rem;
+        }
+        
+        .buff-damage {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+        
+        .buff-speed {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+        
+        .buff-invincible {
+            border-color: gold;
+            color: gold;
+        }
+
+        /* Level up notification */
+        #level-up {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--accent-purple);
+            padding: 2rem;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            z-index: 600;
+        }
+
+        #level-up-title {
+            font-size: 2.5rem;
+            color: var(--accent-purple);
+            margin-bottom: 1.5rem;
+        }
+
+        .upgrade-option {
+            background-color: transparent;
+            border: 1px solid var(--accent-purple);
+            color: var(--primary-light);
+            padding: 0.8rem 1.5rem;
+            margin: 0.5rem;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+            width: 100%;
+            text-align: left;
+        }
+
+        .upgrade-option:hover {
+            background-color: var(--accent-purple);
+            color: black;
+        }
+
+        /* Pause Menu */
+        #pause-menu {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 950;
+        }
+
+        #pause-title {
+            font-size: 4rem;
+            color: var(--primary-light);
+            margin-bottom: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div id="custom-cursor"></div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div id="loading-title">ASCII NIGHTMARE</div>
+        <div id="loading-bar-container">
+            <div id="loading-bar"></div>
+        </div>
+        <div id="loading-text">Loading the horrors...</div>
+    </div>
+
+    <!-- Main Menu -->
+    <div id="main-menu">
+        <h1 id="menu-title">ASCII NIGHTMARE</h1>
+        <button class="menu-button" id="start-game">START DESCENT</button>
+        <button class="menu-button" id="how-to-play">HOW TO PLAY</button>
+        <button class="menu-button" id="credits">CREDITS</button>
+    </div>
+
+    <!-- Character Creation -->
+    <div id="character-creation">
+        <h1 id="creation-title">CREATE YOUR CHARACTER</h1>
+        
+        <div class="creation-section">
+            <h2>Choose Your Appearance</h2>
+            <div class="options-container">
+                <div class="char-option selected" data-character="@&%#">
+                    <div class="preview-area">@&%#</div>
+                    <div>Corruption</div>
+                </div>
+                <div class="char-option" data-character="$€¥£">
+                    <div class="preview-area">$€¥£</div>
+                    <div>Greed</div>
+                </div>
+                <div class="char-option" data-character="∞∆≠√">
+                    <div class="preview-area">∞∆≠√</div>
+                    <div>Chaos</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="creation-section">
+            <h2>Distribute Stat Points</h2>
+            <div class="stat-container">
+                <div class="stat-row">
+                    <div class="stat-name">Health</div>
+                    <div class="stat-bar-container">
+                        <div class="stat-bar" id="health-stat-bar" style="width: 50%;"></div>
+                    </div>
+                    <div class="stat-value">5</div>
+                    <button class="stat-btn" data-stat="health" data-action="minus">-</button>
+                    <button class="stat-btn" data-stat="health" data-action="plus">+</button>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-name">Strength</div>
+                    <div class="stat-bar-container">
+                        <div class="stat-bar" id="strength-stat-bar" style="width: 50%;"></div>
+                    </div>
+                    <div class="stat-value">5</div>
+                    <button class="stat-btn" data-stat="strength" data-action="minus">-</button>
+                    <button class="stat-btn" data-stat="strength" data-action="plus">+</button>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-name">Speed</div>
+                    <div class="stat-bar-container">
+                        <div class="stat-bar" id="speed-stat-bar" style="width: 50%;"></div>
+                    </div>
+                    <div class="stat-value">5</div>
+                    <button class="stat-btn" data-stat="speed" data-action="minus">-</button>
+                    <button class="stat-btn" data-stat="speed" data-action="plus">+</button>
+                </div>
+                <div class="points-remaining">Points Remaining: <span id="points-left">5</span></div>
+            </div>
+        </div>
+
+        <button id="confirm-character">BEGIN THE NIGHTMARE</button>
+    </div>
+
+    <!-- Game Container -->
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <!-- Game UI -->
+        <div id="game-ui">
+            <div class="ui-section">
+                <div>Health: <span id="health-value">100</span></div>
+                <div id="health-bar-container">
+                    <div id="health-bar"></div>
+                </div>
+                <div>Level: <span id="level-value">1</span></div>
+                <div id="xp-bar-container">
+                    <div id="xp-bar"></div>
+                </div>
+            </div>
+            
+            <div class="ui-section">
+                <div>Score: <span id="score-value">0</span></div>
+                <div>Depth: <span id="depth-value">0</span>m</div>
+            </div>
+            
+            <div class="ui-section">
+                <div>Weapons:</div>
+                <div id="weapons-container">
+                    <div class="weapon active" data-weapon="1">1: --/=≠=> </div>
+                    <div class="weapon" data-weapon="2">2: [[-+->></div>
+                    <div class="weapon" data-weapon="3">3: {()=★≈></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Buffs Container -->
+        <div id="buffs-container"></div>
+        
+        <!-- Dialog Box -->
+        <div id="dialog-box">
+            <div id="dialog-text"></div>
+            <div id="dialog-continue">Press SPACE to continue...</div>
+        </div>
+        
+        <!-- Level Up -->
+        <div id="level-up">
+            <h2 id="level-up-title">LEVEL UP!</h2>
+            <button class="upgrade-option" data-upgrade="health">+20 Max Health</button>
+            <button class="upgrade-option" data-upgrade="damage">+15% Damage</button>
+            <button class="upgrade-option" data-upgrade="speed">+10% Movement Speed</button>
+        </div>
+    </div>
+
+    <!-- Game Over -->
+    <div id="game-over">
+        <h1 id="game-over-title">YOU DIED</h1>
+        <div id="final-score">Score: 0</div>
+        <button class="menu-button" id="restart-game">TRY AGAIN</button>
+        <button class="menu-button" id="return-to-menu">MAIN MENU</button>
+    </div>
+
+    <!-- Pause Menu -->
+    <div id="pause-menu">
+        <h1 id="pause-title">PAUSED</h1>
+        <button class="menu-button" id="resume-game">RESUME</button>
+        <button class="menu-button" id="quit-to-menu">QUIT TO MENU</button>
+    </div>
+
+    <script>
+        // Main game variables
+        let canvas, ctx;
+        let gameLoop;
+        let gameState = "loading"; // loading, menu, creation, playing, paused, gameOver
+        let lastTime = 0;
+        let currentTime = 0;
+        let delta = 0;
+        let fps = 60;
+        let interval = 1000 / fps;
+        
+        // Player stats and state
+        let player = {
+            character: "@&%#",
+            baseHealth: 100,
+            maxHealth: 100,
+            health: 100,
+            baseDamage: 20,
+            damageMultiplier: 1,
+            baseSpeed: 5,
+            speedMultiplier: 1,
+            x: 0,
+            y: 0,
+            width: 40,
+            height: 60,
+            velX: 0,
+            velY: 0,
+            jumping: false,
+            grounded: false,
+            facingRight: true,
+            attackCooldown: 0,
+            currentWeapon: 1, // 1=sword, 2=gun, 3=rocket
+            weapons: {
+                1: { name: "Sword", damage: 30, cooldown: 300, range: 60, projectile: false },
+                2: { name: "Gun", damage: 20, cooldown: 500, range: 500, projectile: true, speed: 15 },
+                3: { name: "Rocket", damage: 50, cooldown: 1500, range: 600, projectile: true, speed: 8, aoe: true, aoeRadius: 100 }
+            },
+            score: 0,
+            depth: 0,
+            level: 1,
+            xp: 0,
+            xpToNextLevel: 100,
+            isAttacking: false,
+            attackFrame: 0,
+            invulnerable: false,
+            invulnerableTimer: 0
+        };
+        
+        // Game world
+        let world = {
+            gravity: 0.5,
+            friction: 0.8,
+            scrollSpeed: 1,
+            platforms: [],
+            enemies: [],
+            projectiles: [],
+            particles: [],
+            items: [],
+            buffs: [],
+            backgroundElements: [],
+            camera: {
+                x: 0,
+                y: 0
+            },
+            difficultyMultiplier: 1,
+            nextEnemySpawn: 0,
+            nextItemSpawn: 0,
+            nextBackgroundSpawn: 0
+        };
+        
+        // Controls state
+        let keys = {};
+        let mouse = {
+            x: 0,
+            y: 0,
+            clicked: false
+        };
+        
+        // Game initialization
+        window.onload = function() {
+            initializeLoading();
+
+            // Set up custom cursor
+            const cursor = document.getElementById('custom-cursor');
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+                
+                // Update mouse position for game logic
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            });
+            
+            document.addEventListener('mousedown', () => {
+                cursor.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                mouse.clicked = true;
+            });
+            
+            document.addEventListener('mouseup', () => {
+                cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+                mouse.clicked = false;
+            });
+
+            // Set up event listeners
+            document.addEventListener('keydown', function(e) {
+                keys[e.key] = true;
+
+                    // Allow restart from Game Over screen
+    if (gameState === "gameOver") {
+        if (e.key === "Enter" || e.key.toLowerCase() === "r") {
+            restartGame();
+        }
+    }
+
+                
+                // Weapon selection
+                if (gameState === "playing") {
+                    if (e.key === "1" || e.key === "2" || e.key === "3") {
+                        selectWeapon(parseInt(e.key));
+                    }
+                    
+                    // Pause game
+                    if (e.key === "Escape") {
+                        pauseGame();
+                    }
+                    
+                    // Dialog advancement
+                    if (e.key === " " && document.getElementById('dialog-box').style.display === "block") {
+    document.getElementById('dialog-box').style.display = "none";
+    if (player.health <= 0 && gameState !== "gameOver") {
+        gameOver(); // if dead, go to game over
+    } else if (gameLoop === null) {
+        gameLoop = requestAnimationFrame(gameUpdate);
+    }
+}
+                }
+            });
+            
+            document.addEventListener('keyup', function(e) {
+                keys[e.key] = false;
+            });
+            
+            // Button event listeners
+            document.getElementById('start-game').addEventListener('click', startCharacterCreation);
+            document.getElementById('how-to-play').addEventListener('click', showHowToPlay);
+            document.getElementById('credits').addEventListener('click', showCredits);
+            document.getElementById('confirm-character').addEventListener('click', startGame);
+            document.getElementById('restart-game').addEventListener('click', restartGame);
+            document.getElementById('return-to-menu').addEventListener('click', returnToMenu);
+            document.getElementById('resume-game').addEventListener('click', resumeGame);
+            document.getElementById('quit-to-menu').addEventListener('click', returnToMenu);
+            
+            // Character creation listeners
+            document.querySelectorAll('.char-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.char-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    player.character = this.dataset.character;
+                });
+            });
+            
+            document.querySelectorAll('.stat-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const stat = this.dataset.stat;
+                    const action = this.dataset.action;
+                    const pointsLeft = parseInt(document.getElementById('points-left').textContent);
+                    
+                    let statValue = parseInt(this.parentElement.querySelector('.stat-value').textContent);
+                    let statBar = document.getElementById(`${stat}-stat-bar`);
+                    
+                    if (action === "plus" && pointsLeft > 0 && statValue < 10) {
+                        statValue++;
+                        document.getElementById('points-left').textContent = pointsLeft - 1;
+                    } else if (action === "minus" && statValue > 1) {
+                        statValue--;
+                        document.getElementById('points-left').textContent = pointsLeft + 1;
+                    }
+                    
+                    this.parentElement.querySelector('.stat-value').textContent = statValue;
+                    statBar.style.width = `${statValue * 10}%`;
+                });
+            });
+            
+            // Weapon selection listeners
+            document.querySelectorAll('.weapon').forEach(weapon => {
+                weapon.addEventListener('click', function() {
+                    selectWeapon(parseInt(this.dataset.weapon));
+                });
+            });
+            
+            // Level up option listeners
+            document.querySelectorAll('.upgrade-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    applyUpgrade(this.dataset.upgrade);
+                    document.getElementById('level-up').style.display = "none";
+                    resumeGame();
+                });
+            });
+        };
+
+        function initializeLoading() {
+            // Simulate loading progress
+            let progress = 0;
+            const loadingBar = document.getElementById('loading-bar');
+            const loadingText = document.getElementById('loading-text');
+            
+            const loadingTexts = [
+                "Summoning digital horrors...",
+                "Corrupting ASCII characters...",
+                "Brewing nightmare fuel...",
+                "Opening portals to the void...",
+                "Preparing your demise...",
+                "Sharpening virtual blades...",
+                "Loading unholy algorithms...",
+                "Darkness approaches..."
+            ];
+            
+            const loadingInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(loadingInterval);
+                    setTimeout(() => {
+                        document.getElementById('loading-screen').style.display = "none";
+                        document.getElementById('main-menu').style.display = "flex";
+                        gameState = "menu";
+                    }, 500);
+                }
+                
+                loadingBar.style.width = `${progress}%`;
+                
+                if (progress % 20 < 1) {
+                    loadingText.textContent = loadingTexts[Math.floor(Math.random() * loadingTexts.length)];
+                }
+            }, 200);
+        }
+
+        function startCharacterCreation() {
+            document.getElementById('main-menu').style.display = "none";
+            document.getElementById('character-creation').style.display = "flex";
+            gameState = "creation";
+        }
+
+        function showHowToPlay() {
+            // Create dialog for how to play
+            showDialog([
+                "Welcome to ASCII NIGHTMARE, mortal!",
+                "Move with A and D, Jump with W or SPACE.",
+                "Switch weapons with 1, 2, 3 keys.",
+                "Attack with LEFT MOUSE BUTTON.",
+                "Survive as long as you can, collect items and defeat enemies.",
+                "The deeper you go, the harder it gets...",
+                "May the digital gods have mercy on your soul."
+            ]);
+        }
+
+        function showCredits() {
+            // Create dialog for credits
+            showDialog([
+                "ASCII NIGHTMARE",
+                "Created by AI for the entertainment of humans.",
+                "All characters and horrors are fictional.",
+                "No real ASCII characters were harmed in the making of this game.",
+                "Special thanks to the void between ones and zeros."
+            ]);
+        }
+
+        function startGame() {
+            // Apply character creation stats
+            const healthStat = parseInt(document.querySelector('[data-stat="health"]').parentElement.querySelector('.stat-value').textContent);
+            const strengthStat = parseInt(document.querySelector('[data-stat="strength"]').parentElement.querySelector('.stat-value').textContent);
+            const speedStat = parseInt(document.querySelector('[data-stat="speed"]').parentElement.querySelector('.stat-value').textContent);
+            
+            player.baseHealth = 80 + (healthStat * 20);
+            player.maxHealth = player.baseHealth;
+            player.health = player.maxHealth;
+            player.baseDamage = 15 + (strengthStat * 5);
+            player.baseSpeed = 4 + (speedStat * 0.3);
+            
+            // Reset player position
+            player.x = 100;
+            player.y = 300;
+            
+            // Reset game state
+            player.score = 0;
+            player.depth = 0;
+            player.level = 1;
+            player.xp = 0;
+            player.xpToNextLevel = 100;
+            world.difficultyMultiplier = 1;
+            
+            // Initialize canvas
+            canvas = document.getElementById('game-canvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            ctx = canvas.getContext('2d');
+            
+            // Hide character creation, show game
+            document.getElementById('character-creation').style.display = "none";
+            document.getElementById('game-container').style.display = "block";
+            
+            // Update UI
+            updateUI();
+            
+            // Generate initial platforms
+            generateInitialPlatforms();
+            
+            // Start the game loop
+            gameState = "playing";
+            gameLoop = requestAnimationFrame(gameUpdate);
+            
+            // Show introduction dialog
+            setTimeout(() => {
+                showDialog([
+                    "Welcome to the ASCII NIGHTMARE, " + player.character + "...",
+                    "The digital void has been corrupted, and you are our last hope.",
+                    "Descend into the depths and survive as long as you can.",
+                    "The horrors grow stronger the deeper you go.",
+                    "Good luck, you'll need it."
+                ]);
+            }, 1000);
+        }
+
+        function gameUpdate(timestamp) {
+    // Ensure dialog doesn't block game over
+    if (player.health <= 0 && gameState !== "gameOver") {
+    gameOver();
+    return;
+}
+
+    if (gameState !== "playing") return;
+
+            
+            // Calculate delta time
+            currentTime = timestamp;
+            delta = currentTime - lastTime;
+            
+            // Limit frame rate
+            if (delta > interval) {
+                // Update last time
+                lastTime = currentTime - (delta % interval);
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Update player
+                updatePlayer();
+                
+                // Update world (enemies, platforms, items, etc.)
+                updateWorld();
+                
+                // Draw everything
+                drawGame();
+                
+
+            }
+            
+            // Continue game loop
+            gameLoop = requestAnimationFrame(gameUpdate);
+        }
+
+        function updatePlayer() {
+            // Apply gravity
+            player.velY += world.gravity;
+            
+            // Player movement
+            if (keys["a"] || keys["ArrowLeft"]) {
+                player.velX = -player.baseSpeed * player.speedMultiplier;
+                player.facingRight = false;
+            }
+            if (keys["d"] || keys["ArrowRight"]) {
+                player.velX = player.baseSpeed * player.speedMultiplier;
+                player.facingRight = true;
+            }
+            
+            // If no movement keys pressed, apply friction
+            if (!keys["a"] && !keys["d"] && !keys["ArrowLeft"] && !keys["ArrowRight"]) {
+                player.velX *= world.friction;
+            }
+            
+            // Jumping
+            if ((keys["w"] || keys[" "] || keys["ArrowUp"]) && !player.jumping && player.grounded) {
+                player.jumping = true;
+                player.grounded = false;
+                player.velY = -15;
+                
+                // Jump particles
+                createParticles(player.x + player.width/2, player.y + player.height, 10, 
+                    ['#', '*', '.', '-'], 1, 3, 500, 0.7, 0.2, 15);
+            }
+            
+            // Apply velocity
+            player.x += player.velX;
+            player.y += player.velY;
+            
+            // Screen boundaries
+            if (player.x < 0) {
+                player.x = 0;
+                player.velX = 0;
+            } else if (player.x + player.width > canvas.width) {
+                player.x = canvas.width - player.width;
+                player.velX = 0;
+            }
+            
+            // Handle falling off screen
+            if (player.y > canvas.height + 200) {
+                player.health -= 20;
+                player.y = 0;
+                createParticles(player.x + player.width/2, 20, 20, 
+                    ['#', '*', '!', '?', '%'], 2, 5, 1000, 1, 0.5, 10, true);
+                
+                if (player.health > 0) {
+                    player.invulnerable = true;
+                    player.invulnerableTimer = 1500;
+                }
+                
+                updateUI();
+            }
+            
+            // Auto scroll (increase depth)
+            player.depth += world.scrollSpeed * world.difficultyMultiplier * (delta / 1000);
+            document.getElementById('depth-value').textContent = Math.floor(player.depth);
+            
+            // Platform collision detection
+            player.grounded = false;
+            for (let i = 0; i < world.platforms.length; i++) {
+                let platform = world.platforms[i];
+                let direction = collisionCheck(player, platform);
+                
+                if (direction === "bottom" && player.velY >= 0) {
+                    player.grounded = true;
+                    player.jumping = false;
+                    player.velY = 0;
+                    player.y = platform.y - player.height;
+                } else if (direction === "top" && player.velY < 0) {
+                    player.velY = 0;
+                    player.y = platform.y + platform.height;
+                } else if (direction === "left" && player.velX < 0) {
+                    player.velX = 0;
+                    player.x = platform.x + platform.width;
+                } else if (direction === "right" && player.velX > 0) {
+                    player.velX = 0;
+                    player.x = platform.x - player.width;
+                }
+            }
+            
+            // Attack cooldown
+            if (player.attackCooldown > 0) {
+                player.attackCooldown -= delta;
+                if (player.attackCooldown < 0) player.attackCooldown = 0;
+            }
+            
+            // Mouse click = attack
+            if (mouse.clicked && player.attackCooldown <= 0) {
+                attack();
+            }
+            
+            // Update attack animation
+            if (player.isAttacking) {
+                player.attackFrame += delta;
+                if (player.attackFrame > 300) {
+                    player.isAttacking = false;
+                    player.attackFrame = 0;
+                }
+            }
+            
+            // Invulnerability timer
+            if (player.invulnerable) {
+                player.invulnerableTimer -= delta;
+                if (player.invulnerableTimer <= 0) {
+                    player.invulnerable = false;
+                }
+            }
+            
+            // Update buffs
+            for (let i = world.buffs.length - 1; i >= 0; i--) {
+                let buff = world.buffs[i];
+                buff.duration -= delta;
+                
+                // Update buff display
+                let buffElement = document.getElementById(`buff-${buff.id}`);
+                if (buffElement) {
+                    let timerElement = buffElement.querySelector('.buff-timer');
+                    timerElement.textContent = (buff.duration / 1000).toFixed(1) + "s";
+                }
+                
+                if (buff.duration <= 0) {
+                    // Remove buff effects
+                    if (buff.type === "damage") {
+                        player.damageMultiplier -= buff.value;
+                    } else if (buff.type === "speed") {
+                        player.speedMultiplier -= buff.value;
+                    } else if (buff.type === "invincible") {
+                        player.invulnerable = false;
+                    }
+                    
+                    // Remove buff display
+                    if (buffElement) {
+                        buffElement.remove();
+                    }
+                    
+                    // Remove buff from array
+                    world.buffs.splice(i, 1);
+                }
+            }
+        }
+
+        function updateWorld() {
+            // Update camera position (simple follow camera)
+            world.camera.x = player.x + player.width/2 - canvas.width/2;
+            world.camera.y = player.y + player.height/2 - canvas.height/2;
+            
+            // Spawn enemies
+            world.nextEnemySpawn -= delta;
+            if (world.nextEnemySpawn <= 0) {
+                spawnEnemy();
+                world.nextEnemySpawn = Math.max(8000 / Math.sqrt(world.difficultyMultiplier), 4000);
+                // Spawn rate increases with difficulty
+            }
+            
+            // Spawn items
+            world.nextItemSpawn -= delta;
+            if (world.nextItemSpawn <= 0) {
+                spawnItem();
+                world.nextItemSpawn = 10000 / world.difficultyMultiplier; // Item spawn rate increases with difficulty
+            }
+            
+            // Spawn background elements
+            world.nextBackgroundSpawn -= delta;
+            if (world.nextBackgroundSpawn <= 0) {
+                spawnBackgroundElement();
+                world.nextBackgroundSpawn = 3000;
+            }
+            
+            // Update projectiles
+            for (let i = world.projectiles.length - 1; i >= 0; i--) {
+                let projectile = world.projectiles[i];
+                projectile.x += projectile.velX;
+                projectile.y += projectile.velY;
+                projectile.lifetime -= delta;
+                
+                // Check projectile-enemy collisions
+                for (let j = 0; j < world.enemies.length; j++) {
+                    let enemy = world.enemies[j];
+                    if (collisionDetected(projectile, enemy)) {
+                        // Deal damage to enemy
+                        enemy.health -= projectile.damage;
+                        
+                        // Create particles
+                        createParticles(projectile.x, projectile.y, 5, 
+                            ['!', '#', '*', '+'], 1, 3, 500, 0.5, 0.2, 5);
+                        
+                        // If rocket, apply area damage
+                        if (projectile.aoe) {
+                            for (let k = 0; k < world.enemies.length; k++) {
+                                if (k === j) continue;
+                                
+                                let otherEnemy = world.enemies[k];
+                                let dx = otherEnemy.x + otherEnemy.width/2 - projectile.x;
+                                let dy = otherEnemy.y + otherEnemy.height/2 - projectile.y;
+                                let distance = Math.sqrt(dx*dx + dy*dy);
+                                
+                                if (distance < projectile.aoeRadius) {
+                                    let damage = projectile.damage * (1 - distance/projectile.aoeRadius);
+                                    otherEnemy.health -= damage;
+                                    
+                                    // Create explosion particles
+                                    createParticles(otherEnemy.x + otherEnemy.width/2, otherEnemy.y + otherEnemy.height/2, 3, 
+                                        ['!', '#', '*', '+'], 1, 3, 500, 0.5, 0.2, 5);
+                                }
+                            }
+                            
+                            // Create explosion effect
+                            createParticles(projectile.x, projectile.y, 30, 
+                                ['O', 'o', '*', '#', '='], 2, 5, 1000, 1, 0.5, 10, true);
+                        }
+                        
+                        // Remove projectile
+                        world.projectiles.splice(i, 1);
+                        break;
+                    }
+                }
+                
+                // Check for projectile lifetime expiration or out of bounds
+                if (projectile.lifetime <= 0 || 
+                    projectile.x < -100 || projectile.x > canvas.width + 100 || 
+                    projectile.y < -100 || projectile.y > canvas.height + 100) {
+                    
+                    // If it's a rocket, create explosion when lifetime expires
+                    if (projectile.aoe) {
+                        createParticles(projectile.x, projectile.y, 30, 
+                            ['O', 'o', '*', '#', '='], 2, 5, 1000, 1, 0.5, 10, true);
+                    }
+                    
+                    world.projectiles.splice(i, 1);
+                }
+            }
+            
+            // Update enemies
+            for (let i = world.enemies.length - 1; i >= 0; i--) {
+                let enemy = world.enemies[i];
+                
+                // Enemy behavior
+                updateEnemy(enemy);
+                
+                // Check for enemy death
+                if (enemy.health <= 0) {
+                    // Add score
+                    player.score += enemy.score;
+                    
+                    // Add XP
+                    addXP(enemy.xp);
+                    
+                    // Create death particles
+                    createParticles(enemy.x + enemy.width/2, enemy.y + enemy.height/2, 20, 
+                        enemy.character.split(''), 2, 4, 1000, 1, 0.5, 8);
+                    
+                    // Chance to drop item
+                    if (Math.random() < 0.3) {
+                        dropItem(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
+                    }
+                    
+                    // Remove enemy
+                    world.enemies.splice(i, 1);
+                }
+                
+                // Check for enemy-player collision
+                if (collisionDetected(player, enemy) && !player.invulnerable) {
+                    // Player takes damage
+                    player.health -= enemy.damage;
+                    
+                    // Apply knockback
+                    let knockbackDirection = player.x < enemy.x ? -1 : 1;
+                    player.velX = knockbackDirection * 10;
+                    player.velY = -5;
+                    
+                    // Make player invulnerable temporarily
+                    player.invulnerable = true;
+                    player.invulnerableTimer = 1000;
+                    
+                    // Create hit particles
+                    createParticles(player.x + player.width/2, player.y + player.height/2, 10, 
+                        ['!', '#', '*', '+'], 1, 3, 500, 0.5, 0.2, 5);
+                    
+                    // Update UI
+                    updateUI();
+                }
+            }
+            
+            // Update platforms
+            for (let i = world.platforms.length - 1; i >= 0; i--) {
+                let platform = world.platforms[i];
+                
+                // Remove platforms that are too far above
+                if (platform.y < player.y - 1000) {
+                    world.platforms.splice(i, 1);
+                    continue;
+                }
+                
+                // Add new platforms when nearing the bottom
+                if (player.y > canvas.height - 300 && world.platforms.length < 10) {
+                    generatePlatforms();
+                }
+            }
+            
+            // Update items
+            for (let i = world.items.length - 1; i >= 0; i--) {
+                let item = world.items[i];
+                
+                // Apply gravity to items
+                item.velY += world.gravity * 0.3;
+                item.y += item.velY;
+                
+                // Item bouncing on platforms
+                for (let j = 0; j < world.platforms.length; j++) {
+                    let platform = world.platforms[j];
+                    if (collisionDetected(item, platform) && item.velY > 0) {
+                        item.velY = -item.velY * 0.5;
+                        item.y = platform.y - item.height;
+                        break;
+                    }
+                }
+                
+                // Animate item (floating effect)
+                item.floatOffset = Math.sin(currentTime / 200) * 5;
+                
+                // Check for item-player collision
+                if (collisionDetected(player, item)) {
+                    // Apply item effect
+                    applyItem(item);
+                    
+                    // Create collect particles
+                    createParticles(item.x + item.width/2, item.y + item.height/2, 10, 
+                        ['✓', '+', '*', '!'], 1, 3, 500, 0.5, 0.2, 5, true);
+                    
+                    // Remove item
+                    world.items.splice(i, 1);
+                }
+                
+                // Remove items that fall too far down
+                if (item.y > canvas.height + 200) {
+                    world.items.splice(i, 1);
+                }
+            }
+            
+            // Update particles
+            for (let i = world.particles.length - 1; i >= 0; i--) {
+                let particle = world.particles[i];
+                
+                // Update position
+                particle.x += particle.velX;
+                particle.y += particle.velY;
+                
+                // Apply gravity if needed
+                if (particle.gravity) {
+                    particle.velY += world.gravity * 0.1;
+                }
+                
+                // Update lifetime
+                particle.lifetime -= delta;
+                
+                // Remove expired particles
+                if (particle.lifetime <= 0) {
+                    world.particles.splice(i, 1);
+                }
+            }
+            
+            // Update background elements
+            for (let i = world.backgroundElements.length - 1; i >= 0; i--) {
+                let element = world.backgroundElements[i];
+                
+                // Move background elements slowly
+                element.y -= 0.2 * world.difficultyMultiplier;
+                
+                // Remove elements that go off screen
+                if (element.y < -100) {
+                    world.backgroundElements.splice(i, 1);
+                }
+            }
+            
+            // Increase difficulty over time
+            world.difficultyMultiplier += 0.0001 * delta;
+            world.scrollSpeed = 1 + (world.difficultyMultiplier - 1) * 0.5;
+        }
+
+        function drawGame() {
+            // Fill background
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Create camera transform
+            ctx.save();
+            //ctx.translate(-world.camera.x, -world.camera.y);
+            
+            // Draw background elements
+            for (let i = 0; i < world.backgroundElements.length; i++) {
+                let element = world.backgroundElements[i];
+                ctx.globalAlpha = 0.3;
+                ctx.fillStyle = element.color;
+                ctx.font = `${element.size}px Courier New`;
+                ctx.fillText(element.character, element.x, element.y);
+                ctx.globalAlpha = 1;
+            }
+            
+            // Draw platforms
+            for (let i = 0; i < world.platforms.length; i++) {
+                let platform = world.platforms[i];
+                ctx.fillStyle = platform.color;
+                
+                // Draw platform as ASCII characters
+                ctx.font = "20px Courier New";
+                let chars = platform.chars.split('');
+                let charWidth = 12;
+                
+                for (let x = 0; x < platform.width; x += charWidth) {
+                    let char = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillText(char, platform.x + x, platform.y + 15);
+                }
+            }
+            
+            // Draw items
+            for (let i = 0; i < world.items.length; i++) {
+                let item = world.items[i];
+                ctx.fillStyle = item.color;
+                ctx.font = `${item.size}px Courier New`;
+                
+                // Apply floating animation
+                ctx.fillText(item.character, item.x, item.y + item.floatOffset);
+                
+                // Draw item name
+                ctx.font = "12px Courier New";
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.fillText(item.name, item.x - 10, item.y - 10);
+            }
+            
+            // Draw projectiles
+            for (let i = 0; i < world.projectiles.length; i++) {
+                let projectile = world.projectiles[i];
+                ctx.fillStyle = projectile.color;
+                ctx.font = `${projectile.size}px Courier New`;
+                
+                // Rotate text for proper direction
+                ctx.save();
+                ctx.translate(projectile.x, projectile.y);
+                
+                if (projectile.velX < 0) {
+                    ctx.scale(-1, 1);
+                    ctx.fillText(projectile.character, 0, 0);
+                } else {
+                    ctx.fillText(projectile.character, 0, 0);
+                }
+                
+                ctx.restore();
+            }
+            
+            // Draw enemies
+            for (let i = 0; i < world.enemies.length; i++) {
+                let enemy = world.enemies[i];
+                
+                // Draw enemy health bar
+                let healthPercent = enemy.health / enemy.maxHealth;
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(enemy.x, enemy.y - 10, enemy.width, 5);
+                ctx.fillStyle = '#ff3333';
+                ctx.fillRect(enemy.x, enemy.y - 10, enemy.width * healthPercent, 5);
+                
+                // Draw enemy character
+                ctx.fillStyle = enemy.color;
+                ctx.font = `${enemy.size}px Courier New`;
+                
+                if (enemy.direction === -1) {
+                    // Face left
+                    ctx.save();
+                    ctx.translate(enemy.x + enemy.width, 0);
+                    ctx.scale(-1, 1);
+                    ctx.fillText(enemy.character, 0, enemy.y + enemy.height/2);
+                    ctx.restore();
+                } else {
+                    // Face right
+                    ctx.fillText(enemy.character, enemy.x, enemy.y + enemy.height/2);
+                }
+            }
+            
+            // Draw player
+            ctx.font = `${player.invulnerable ? 'italic ' : ''}30px Courier New`;
+            ctx.fillStyle = player.invulnerable ? '#ff9933' : '#f0f0f0';
+            
+            // Player position
+            let playerDrawX = player.x;
+            let playerDrawY = player.y + 30; // Adjust for font baseline
+            
+            // Draw based on facing direction
+            if (player.facingRight) {
+                ctx.fillText(player.character, playerDrawX, playerDrawY);
+                
+                // Draw weapon if attacking
+                if (player.isAttacking) {
+                    let weapon = player.weapons[player.currentWeapon];
+                    let weaponChars;
+                    
+                    if (player.currentWeapon === 1) { // Sword
+                        weaponChars = "--/=≠=>";
+                    } else if (player.currentWeapon === 2) { // Gun
+                        weaponChars = "[[-+->>";
+                    } else { // Rocket
+                        weaponChars = "{()=★≈>";
+                    }
+                    
+                    ctx.fillStyle = '#f0f0f0';
+                    ctx.fillText(weaponChars, playerDrawX + player.width, playerDrawY - 5);
+                }
+            } else {
+                // Draw character facing left
+                ctx.save();
+                ctx.translate(playerDrawX + player.width, 0);
+                ctx.scale(-1, 1);
+                ctx.fillText(player.character, 0, playerDrawY);
+                
+                // Draw weapon if attacking
+                if (player.isAttacking) {
+                    let weapon = player.weapons[player.currentWeapon];
+                    let weaponChars;
+                    
+                    if (player.currentWeapon === 1) { // Sword
+                        weaponChars = "<-==\\--";
+                    } else if (player.currentWeapon === 2) { // Gun
+                        weaponChars = "<<-+--[";
+                    } else { // Rocket
+                        weaponChars = "<≈-★=={}";
+                    }
+                    
+                    ctx.fillStyle = '#f0f0f0';
+                    ctx.fillText(weaponChars, 0 + player.width, playerDrawY - 5);
+                }
+                
+                ctx.restore();
+            }
+            
+            // Draw particles
+            for (let i = 0; i < world.particles.length; i++) {
+                let particle = world.particles[i];
+                
+                // Calculate opacity based on lifetime
+                let opacity = particle.lifetime / particle.maxLifetime;
+                ctx.globalAlpha = opacity;
+                
+                ctx.fillStyle = particle.color;
+                ctx.font = `${particle.size}px Courier New`;
+                ctx.fillText(particle.character, particle.x, particle.y);
+            }
+            
+            // Reset opacity
+            ctx.globalAlpha = 1;
+            
+            // Restore camera transform
+            ctx.restore();
+        }
+
+        function attack() {
+            let weapon = player.weapons[player.currentWeapon];
+            player.attackCooldown = weapon.cooldown;
+            player.isAttacking = true;
+            player.attackFrame = 0;
+            
+            // Calculate attack direction
+            let attackDirection = player.facingRight ? 1 : -1;
+            
+            // Apply weapon effects
+            if (weapon.projectile) {
+                // Create projectile
+                let projectile = {
+                    x: player.x + (player.facingRight ? player.width : 0),
+                    y: player.y + player.height/2,
+                    width: 20,
+                    height: 10,
+                    velX: attackDirection * weapon.speed,
+                    velY: 0,
+                    damage: weapon.damage * player.damageMultiplier,
+                    lifetime: 2000,
+                    character: player.currentWeapon === 2 ? "-->" : "==★=>",
+                    color: player.currentWeapon === 2 ? '#ffcc33' : '#ff3333',
+                    size: 20
+                };
+                
+                // Add AOE properties for rocket
+                if (weapon.aoe) {
+                    projectile.aoe = true;
+                    projectile.aoeRadius = weapon.aoeRadius;
+                }
+                
+                world.projectiles.push(projectile);
+            } else {
+                // Melee attack (sword)
+                let attackArea = {
+                    x: player.x + (player.facingRight ? player.width : -weapon.range),
+                    y: player.y,
+                    width: weapon.range,
+                    height: player.height
+                };
+                
+                // Create swing effect
+                createParticles(
+                    player.x + (player.facingRight ? player.width + 20 : -20),
+                    player.y + player.height/2,
+                    5,
+                    ['/', '|', '\\', '-'],
+                    1, 2, 300, 0.5, 0.1, 5
+                );
+                
+                // Check for enemies in attack area
+                for (let i = 0; i < world.enemies.length; i++) {
+                    let enemy = world.enemies[i];
+                    if (collisionDetected(attackArea, enemy)) {
+                        // Deal damage
+                        enemy.health -= weapon.damage * player.damageMultiplier;
+                        
+                        // Create hit particles
+                        createParticles(
+                            enemy.x + enemy.width/2,
+                            enemy.y + enemy.height/2,
+                            10,
+                            ['!', '#', '*', '+'],
+                            1, 3, 500, 0.5, 0.2, 5
+                        );
+                        
+                        // Apply knockback
+                        enemy.velX = attackDirection * 5;
+                        enemy.velY = -2;
+                    }
+                }
+            }
+        }
+
+        function selectWeapon(weaponId) {
+            if (weaponId >= 1 && weaponId <= 3) {
+                player.currentWeapon = weaponId;
+                
+                // Update UI
+                document.querySelectorAll('.weapon').forEach(el => {
+                    el.classList.remove('active');
+                });
+                document.querySelector(`.weapon[data-weapon="${weaponId}"]`).classList.add('active');
+            }
+        }
+
+        function spawnEnemy() {
+            // Enemy types
+            const enemyTypes = [
+                {
+                    name: "Crawler",
+                    character: "W###W",
+                    color: '#ff5555',
+                    size: 25,
+                    health: 40,
+                    maxHealth: 40,
+                    damage: 10,
+                    score: 50,
+                    xp: 20,
+                    speed: 3,
+                    behavior: "ground"
+                },
+                {
+                    name: "Floater",
+                    character: "◊≈≈≈◊",
+                    color: '#55aaff',
+                    size: 25,
+                    health: 30,
+                    maxHealth: 30,
+                    damage: 15,
+                    score: 70,
+                    xp: 25,
+                    speed: 2,
+                    behavior: "flying"
+                },
+                {
+                    name: "Corrupted",
+                    character: "Ψ▓▒░",
+                    color: '#aa55ff',
+                    size: 28,
+                    health: 60,
+                    maxHealth: 60,
+                    damage: 20,
+                    score: 100,
+                    xp: 30,
+                    speed: 1.5,
+                    behavior: "teleport"
+                },
+                {
+                    name: "Glitch",
+                    character: "E®Ř¤Ř",
+                    color: '#ffaa33',
+                    size: 30,
+                    health: 50,
+                    maxHealth: 50,
+                    damage: 25,
+                    score: 120,
+                    xp: 35,
+                    speed: 4,
+                    behavior: "erratic"
+                }
+            ];
+            
+            // Choose enemy type based on difficulty
+            let typeIndex;
+            const difficultyFactor = Math.min(world.difficultyMultiplier, 5);
+            
+            if (difficultyFactor < 1.5) {
+                typeIndex = 0; // Only spawn Crawlers early on
+            } else if (difficultyFactor < 2.5) {
+                typeIndex = Math.random() < 0.7 ? 0 : 1; // Mostly Crawlers, some Floaters
+            } else if (difficultyFactor < 3.5) {
+                typeIndex = Math.floor(Math.random() * 3); // Crawlers, Floaters, and Corrupted
+            } else {
+                typeIndex = Math.floor(Math.random() * enemyTypes.length); // All enemy types
+            }
+            
+            // Create enemy based on selected type
+            let enemyType = enemyTypes[typeIndex];
+            let enemy = { ...enemyType }; // Clone properties
+            
+// Scale enemy stats with difficulty (but reduce health to make them easier)
+enemy.health = (enemy.health * 0.6) * world.difficultyMultiplier;
+enemy.maxHealth = enemy.health;
+enemy.damage *= world.difficultyMultiplier;
+
+            enemy.score = Math.floor(enemy.score * world.difficultyMultiplier);
+            enemy.xp = Math.floor(enemy.xp * Math.sqrt(world.difficultyMultiplier));
+            
+            // Set size and position
+            enemy.width = enemy.character.length * 12;
+            enemy.height = 40;
+            
+            // Spawn position based on behavior
+            if (enemy.behavior === "flying" || enemy.behavior === "teleport") {
+                // Spawn in air
+                enemy.x = Math.random() < 0.5 ? -100 : canvas.width + 100;
+                enemy.y = Math.random() * (canvas.height - 300);
+            } else {
+                // Spawn on ground or platform
+                enemy.x = Math.random() < 0.5 ? -100 : canvas.width + 100;
+                enemy.y = canvas.height - 200;
+                
+                // Try to find a platform to spawn on
+                for (let i = 0; i < world.platforms.length; i++) {
+                    let platform = world.platforms[i];
+                    if (platform.y > player.y && platform.y < canvas.height && 
+                        Math.random() < 0.3) {
+                        enemy.y = platform.y - enemy.height;
+                        break;
+                    }
+                }
+            }
+            
+            // Initialize enemy state
+            enemy.velX = 0;
+            enemy.velY = 0;
+            enemy.direction = enemy.x < player.x ? 1 : -1; // Face player
+            enemy.grounded = false;
+            enemy.attackCooldown = 0;
+            enemy.teleportCooldown = 0;
+            enemy.state = "idle";
+            
+            // Add enemy quotes
+            enemy.quotes = getEnemyQuotes(enemy.name);
+            
+            // Add to game world
+            world.enemies.push(enemy);
+        }
+
+        function updateEnemy(enemy) {
+            // Apply gravity based on behavior
+            if (enemy.behavior !== "flying") {
+                enemy.velY += world.gravity;
+            }
+            
+            // Different behavior patterns
+            switch (enemy.behavior) {
+                case "ground":
+                    // Basic ground movement toward player
+                    enemy.direction = player.x > enemy.x ? 1 : -1;
+                    enemy.velX = enemy.direction * enemy.speed;
+                    
+                    // Jump if blocked or random chance
+                    if ((Math.random() < 0.005 || enemy.state === "blocked") && enemy.grounded) {
+                        enemy.velY = -12;
+                        enemy.grounded = false;
+                    }
+                    break;
+                    
+                case "flying":
+                    // Flying enemies move toward player
+                    let dx = player.x - enemy.x;
+                    let dy = player.y - enemy.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (dist > 0) {
+                        enemy.velX = (dx / dist) * enemy.speed;
+                        enemy.velY = (dy / dist) * enemy.speed;
+                    }
+                    
+                    // Floating effect
+                    enemy.velY += Math.sin(currentTime / 500) * 0.1;
+                    break;
+                    
+                case "teleport":
+                    // Move slowly toward player
+                    enemy.direction = player.x > enemy.x ? 1 : -1;
+                    enemy.velX = enemy.direction * enemy.speed * 0.5;
+                    
+                    // Occasional teleport
+                    enemy.teleportCooldown -= delta;
+                    if (enemy.teleportCooldown <= 0) {
+                        // Create disappear effect
+                        createParticles(enemy.x + enemy.width/2, enemy.y + enemy.height/2, 15,
+                            ['*', '#', '?', '!'], 2, 4, 1000, 1, 0.5, 10);
+                        
+                        // Teleport closer to player
+                        let angle = Math.random() * Math.PI * 2;
+                        let distance = 100 + Math.random() * 150;
+                        enemy.x = player.x + Math.cos(angle) * distance;
+                        enemy.y = player.y + Math.sin(angle) * distance;
+                        
+                        // Create appear effect
+                        createParticles(enemy.x + enemy.width/2, enemy.y + enemy.height/2, 15,
+                            ['*', '#', '?', '!'], 2, 4, 1000, 1, 0.5, 10);
+                        
+                        // Reset cooldown
+                        enemy.teleportCooldown = 3000 + Math.random() * 2000;
+                        
+                        // Say something spooky
+                        if (Math.random() < 0.3) {
+                            showEnemyDialog(enemy);
+                        }
+                    }
+                    break;
+                    
+                case "erratic":
+                    // Erratic movement
+                    if (Math.random() < 0.02) {
+                        enemy.direction = Math.random() < 0.5 ? 1 : -1;
+                    }
+                    
+                    enemy.velX = enemy.direction * enemy.speed * (0.5 + Math.random() * 1.5);
+                    
+                    // Random jumps
+                    if (Math.random() < 0.01 && enemy.grounded) {
+                        enemy.velY = -15;
+                        enemy.grounded = false;
+                    }
+                    
+                    // Occasionally move toward player
+                    if (Math.random() < 0.01) {
+                        enemy.direction = player.x > enemy.x ? 1 : -1;
+                    }
+                    
+                    // Say weird stuff
+                    if (Math.random() < 0.001) {
+                        showEnemyDialog(enemy);
+                    }
+                    break;
+            }
+            
+            // Apply velocity
+            enemy.x += enemy.velX;
+            enemy.y += enemy.velY;
+            
+            // Platform collision
+            enemy.grounded = false;
+            for (let i = 0; i < world.platforms.length; i++) {
+                let platform = world.platforms[i];
+                let direction = collisionCheck(enemy, platform);
+                
+                if (direction === "bottom" && enemy.velY >= 0) {
+                    enemy.grounded = true;
+                    enemy.velY = 0;
+                    enemy.y = platform.y - enemy.height;
+                    enemy.state = "idle";
+                } else if (direction === "top" && enemy.velY < 0) {
+                    enemy.velY = 0;
+                    enemy.y = platform.y + platform.height;
+                } else if (direction === "left" && enemy.velX < 0) {
+                    enemy.velX = 0;
+                    enemy.x = platform.x + platform.width;
+                    enemy.state = "blocked";
+                } else if (direction === "right" && enemy.velX > 0) {
+                    enemy.velX = 0;
+                    enemy.x = platform.x - enemy.width;
+                    enemy.state = "blocked";
+                }
+            }
+            
+            // Screen boundaries (only for flying enemies, others can go offscreen a bit)
+            if (enemy.behavior === "flying") {
+                if (enemy.x < 0) {
+                    enemy.x = 0;
+                    enemy.velX = 0;
+                } else if (enemy.x + enemy.width > canvas.width) {
+                    enemy.x = canvas.width - enemy.width;
+                    enemy.velX = 0;
+                }
+                
+                if (enemy.y < 0) {
+                    enemy.y = 0;
+                    enemy.velY = 0;
+                } else if (enemy.y + enemy.height > canvas.height) {
+                    enemy.y = canvas.height - enemy.height;
+                    enemy.velY = 0;
+                }
+            }
+            
+            // Apply friction if grounded
+            if (enemy.grounded) {
+                enemy.velX *= world.friction;
+            }
+            
+            // Attack cooldown
+            if (enemy.attackCooldown > 0) {
+                enemy.attackCooldown -= delta;
+            }
+        }
+
+        function spawnItem() {
+            // Find a suitable platform to spawn on
+            let targetPlatform = null;
+            for (let i = 0; i < world.platforms.length; i++) {
+                let platform = world.platforms[i];
+                
+                // Only spawn on visible platforms
+                if (platform.y > 0 && platform.y < canvas.height) {
+                    if (!targetPlatform || Math.random() < 0.3) {
+                        targetPlatform = platform;
+                    }
+                }
+            }
+            
+            // If no platform found, return
+            if (!targetPlatform) return;
+            
+            // Item types
+            const itemTypes = [
+                {
+                    name: "Health",
+                    character: "♥",
+                    color: '#ff5555',
+                    size: 24,
+                    effect: "health",
+                    value: 30,
+                    weight: 40
+                },
+                {
+                    name: "Big Health",
+                    character: "♥+",
+                    color: '#ff3333',
+                    size: 28,
+                    effect: "health",
+                    value: 70,
+                    weight: 10
+                },
+                {
+                    name: "Damage Boost",
+                    character: "⚔",
+                    color: '#ffaa33',
+                    size: 24,
+                    effect: "damage",
+                    value: 0.25, // 25% damage boost
+                    duration: 10000, // 10 seconds
+                    weight: 20
+                },
+                {
+                    name: "Speed Boost",
+                    character: "»",
+                    color: '#33cc33',
+                    size: 24,
+                    effect: "speed",
+                    value: 0.3, // 30% speed boost
+                    duration: 8000, // 8 seconds
+                    weight: 15
+                },
+                {
+                    name: "God Mode",
+                    character: "✧",
+                    color: '#ffdd33',
+                    size: 30,
+                    effect: "invincible",
+                    duration: 5000, // 5 seconds
+                    weight: 5
+                },
+                {
+                    name: "XP Orb",
+                    character: "✦",
+                    color: '#aa55ff',
+                    size: 24,
+                    effect: "xp",
+                    value: 50,
+                    weight: 25
+                }
+            ];
+            
+            // Choose random item type based on weights
+            let totalWeight = itemTypes.reduce((sum, item) => sum + item.weight, 0);
+            let randomWeight = Math.random() * totalWeight;
+            let cumulativeWeight = 0;
+            let selectedItemType = itemTypes[0];
+            
+            for (let i = 0; i < itemTypes.length; i++) {
+                cumulativeWeight += itemTypes[i].weight;
+                if (randomWeight <= cumulativeWeight) {
+                    selectedItemType = itemTypes[i];
+                    break;
+                }
+            }
+            
+            // Create the item
+            let item = { ...selectedItemType }; // Clone properties
+            
+            // Set size and position
+            item.width = 30;
+            item.height = 30;
+            item.x = targetPlatform.x + Math.random() * (targetPlatform.width - item.width);
+            item.y = targetPlatform.y - item.height;
+            
+            // Initialize item physics
+            item.velY = -5 - Math.random() * 5; // Initial upward velocity
+            item.floatOffset = 0;
+            
+            // Add to game world
+            world.items.push(item);
+        }
+
+        function dropItem(x, y) {
+            // Item types for enemy drops (simplified list)
+            const dropTypes = [
+                {
+                    name: "Health",
+                    character: "♥",
+                    color: '#ff5555',
+                    size: 24,
+                    effect: "health",
+                    value: 20,
+                    weight: 60
+                },
+                {
+                    name: "XP Orb",
+                    character: "✦",
+                    color: '#aa55ff',
+                    size: 24,
+                    effect: "xp",
+                    value: 30,
+                    weight: 40
+                }
+            ];
+            
+            // Choose random drop type based on weights
+            let totalWeight = dropTypes.reduce((sum, item) => sum + item.weight, 0);
+            let randomWeight = Math.random() * totalWeight;
+            let cumulativeWeight = 0;
+            let selectedDropType = dropTypes[0];
+            
+            for (let i = 0; i < dropTypes.length; i++) {
+                cumulativeWeight += dropTypes[i].weight;
+                if (randomWeight <= cumulativeWeight) {
+                    selectedDropType = dropTypes[i];
+                    break;
+                }
+            }
+            
+            // Create the item
+            let item = { ...selectedDropType }; // Clone properties
+            
+            // Set size and position
+            item.width = 30;
+            item.height = 30;
+            item.x = x - item.width/2;
+            item.y = y - item.height/2;
+            
+            // Initialize item physics
+            item.velY = -10; // Initial upward velocity
+            item.floatOffset = 0;
+            
+            // Add to game world
+            world.items.push(item);
+        }
+
+        function applyItem(item) {
+            // Apply the item effect
+            switch (item.effect) {
+                case "health":
+                    player.health += item.value;
+                    if (player.health > player.maxHealth) {
+                        player.health = player.maxHealth;
+                    }
+                    break;
+                    
+                case "damage":
+                    player.damageMultiplier += item.value;
+                    addBuff("damage", item.value, item.duration);
+                    break;
+                    
+                case "speed":
+                    player.speedMultiplier += item.value;
+                    addBuff("speed", item.value, item.duration);
+                    break;
+                    
+                case "invincible":
+                    player.invulnerable = true;
+                    addBuff("invincible", 1, item.duration);
+                    break;
+                    
+                case "xp":
+                    addXP(item.value);
+                    break;
+            }
+            
+            // Update UI
+            updateUI();
+            
+            // Show pickup message
+            if (item.effect !== "xp") {
+                showMessage("Got " + item.name + "!");
+            }
+        }
+
+        function addBuff(type, value, duration) {
+            // Create unique ID for buff
+            let buffId = Date.now();
+            
+            // Create buff object
+            let buff = {
+                id: buffId,
+                type: type,
+                value: value,
+                duration: duration,
+                startTime: currentTime
+            };
+            
+            // Add to buffs array
+            world.buffs.push(buff);
+            
+            // Create buff display
+            let buffsContainer = document.getElementById('buffs-container');
+            let buffElement = document.createElement('div');
+            buffElement.id = `buff-${buffId}`;
+            buffElement.className = `buff buff-${type}`;
+            
+            let buffName = type === "damage" ? "Damage +" : type === "speed" ? "Speed +" : "Invincible";
+            let buffValue = type === "invincible" ? "" : `${Math.round(value * 100)}%`;
+            
+            buffElement.innerHTML = `
+                <div>${buffName} ${buffValue}</div>
+                <div class="buff-timer">${(duration / 1000).toFixed(1)}s</div>
+            `;
+            
+            buffsContainer.appendChild(buffElement);
+        }
+
+        function addXP(amount) {
+            player.xp += amount;
+            
+            // Check for level up
+            if (player.xp >= player.xpToNextLevel) {
+                levelUp();
+            }
+            
+            // Update XP bar
+            let xpPercent = (player.xp / player.xpToNextLevel) * 100;
+            document.getElementById('xp-bar').style.width = `${xpPercent}%`;
+        }
+
+        function levelUp() {
+            player.level++;
+            player.xp -= player.xpToNextLevel;
+            player.xpToNextLevel = Math.floor(player.xpToNextLevel * 1.5); // Increase XP needed for next level
+            
+            // Update UI
+            document.getElementById('level-value').textContent = player.level;
+            
+            // Show level up screen and pause game
+            document.getElementById('level-up').style.display = "flex";
+            pauseGame();
+            
+            // Create level up effect
+            createParticles(player.x + player.width/2, player.y + player.height/2, 30, 
+                ['*', '#', '+', '✦', '☆'], 2, 4, 2000, 1, 0.5, 15, true);
+        }
+
+        function applyUpgrade(type) {
+            switch (type) {
+                case "health":
+                    player.maxHealth += 20;
+                    player.health += 20;
+                    break;
+                case "damage":
+                    player.baseDamage *= 1.15; // 15% increase
+                    break;
+                case "speed":
+                    player.baseSpeed *= 1.1; // 10% increase
+                    break;
+            }
+            
+            // Update UI
+            updateUI();
+        }
+
+        function generateInitialPlatforms() {
+            // Create ground platform
+            let ground = {
+                x: 0,
+                y: canvas.height - 50,
+                width: canvas.width,
+                height: 50,
+                color: '#555555',
+                chars: "-_=+*#"
+            };
+            
+            world.platforms.push(ground);
+            
+            // Create some initial platforms
+            for (let i = 0; i < 10; i++) {
+                generatePlatforms();
+            }
+        }
+
+        function generatePlatforms() {
+            // Platform types
+            const platformTypes = [
+                {
+                    chars: "-_=+*#",
+                    color: '#555555'
+                },
+                {
+                    chars: "~≈≡§",
+                    color: '#558855'
+                },
+                {
+                    chars: "□■▪▫",
+                    color: '#885555'
+                },
+                {
+                    chars: "◊○●◌",
+                    color: '#555588'
+                }
+            ];
+            
+            // Choose random type
+            let type = platformTypes[Math.floor(Math.random() * platformTypes.length)];
+            
+            // Platform dimensions
+            let width = 100 + Math.random() * 200;
+            let height = 20;
+            
+            // Platform position (below the last platform, or below the player if no platforms)
+            let lastPlatformY = player.y + player.height + 100 + Math.random() * 100;
+            if (world.platforms.length > 0) {
+                let lastPlatform = world.platforms[world.platforms.length - 1];
+                lastPlatformY = lastPlatform.y + 100 + Math.random() * 150;
+            }
+            
+            let x = Math.random() * (canvas.width - width);
+            let y = lastPlatformY;
+            
+            // Create platform
+            let platform = {
+                x: x,
+                y: y,
+                width: width,
+                height: height,
+                color: type.color,
+                chars: type.chars
+            };
+            
+            world.platforms.push(platform);
+        }
+
+        function spawnBackgroundElement() {
+            // Background element types
+            const elementTypes = [
+                {
+                    characters: ['☠', '✝', '✞', '☥', '⚰', '⚱'],
+                    colors: ['#aa5555', '#555555']
+                },
+                {
+                    characters: ['☁', '♠', '♣', '♦', '♥', '♪', '♫'],
+                    colors: ['#5555aa', '#aa55aa']
+                },
+                {
+                    characters: ['⚠', '⚛', '☢', '☣', '⚡'],
+                    colors: ['#aaaa55', '#aa5500']
+                },
+                {
+                    characters: ['◊', '○', '□', '△', '▽', '◇', '◆'],
+                    colors: ['#55aaaa', '#55aa55']
+                }
+            ];
+            
+            // Choose random type
+            let type = elementTypes[Math.floor(Math.random() * elementTypes.length)];
+            let character = type.characters[Math.floor(Math.random() * type.characters.length)];
+            let color = type.colors[Math.floor(Math.random() * type.colors.length)];
+            
+            // Size and position
+            let size = 20 + Math.random() * 40;
+            let x = Math.random() * canvas.width;
+            let y = canvas.height + 50;
+            
+            // Create element
+            let element = {
+                character: character,
+                color: color,
+                size: size,
+                x: x,
+                y: y
+            };
+            
+            world.backgroundElements.push(element);
+        }
+
+        function createParticles(x, y, count, characters, minSize, maxSize, lifetime, speedX, speedY, spread, gravity = false) {
+            // Create particles
+            for (let i = 0; i < count; i++) {
+                let character = characters[Math.floor(Math.random() * characters.length)];
+                let size = minSize + Math.random() * (maxSize - minSize);
+                let velX = (Math.random() - 0.5) * speedX * spread;
+                let velY = (Math.random() - 0.5) * speedY * spread;
+                
+                // Random color
+                let colors = ['#ff5555', '#ffaa33', '#33cc33', '#3399ff', '#aa55ff'];
+                let color = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Create particle
+                let particle = {
+                    character: character,
+                    size: size,
+                    x: x,
+                    y: y,
+                    velX: velX,
+                    velY: velY,
+                    color: color,
+                    lifetime: lifetime,
+                    maxLifetime: lifetime,
+                    gravity: gravity
+                };
+                
+                world.particles.push(particle);
+            }
+        }
+
+        function collisionDetected(obj1, obj2) {
+            return obj1.x < obj2.x + obj2.width &&
+                   obj1.x + obj1.width > obj2.x &&
+                   obj1.y < obj2.y + obj2.height &&
+                   obj1.y + obj1.height > obj2.y;
+        }
+
+        function collisionCheck(obj1, obj2) {
+            // Get the vectors to check against
+            let vX = (obj1.x + (obj1.width / 2)) - (obj2.x + (obj2.width / 2));
+            let vY = (obj1.y + (obj1.height / 2)) - (obj2.y + (obj2.height / 2));
+            
+            // Half widths and half heights of the objects
+            let halfWidths = (obj1.width / 2) + (obj2.width / 2);
+            let halfHeights = (obj1.height / 2) + (obj2.height / 2);
+            
+            // Check for collision
+            if (Math.abs(vX) < halfWidths && Math.abs(vY) < halfHeights) {
+                // Calculate overlap
+                let oX = halfWidths - Math.abs(vX);
+                let oY = halfHeights - Math.abs(vY);
+                
+                // The collision is on the axis of least penetration
+                if (oX < oY) {
+                    if (vX > 0) {
+                        return "left";
+                    } else {
+                        return "right";
+                    }
+                } else {
+                    if (vY > 0) {
+                        return "top";
+                    } else {
+                        return "bottom";
+                    }
+                }
+            }
+            
+            return null;
+        }
+
+        function updateUI() {
+            // Update health bar
+            let healthPercent = (player.health / player.maxHealth) * 100;
+            document.getElementById('health-bar').style.width = `${healthPercent}%`;
+            document.getElementById('health-value').textContent = Math.floor(player.health);
+            
+            // Update score
+            document.getElementById('score-value').textContent = player.score;
+            
+            // Update XP bar
+            let xpPercent = (player.xp / player.xpToNextLevel) * 100;
+            document.getElementById('xp-bar').style.width = `${xpPercent}%`;
+        }
+
+        function showDialog(lines) {
+            // Pause game
+            if (gameLoop) {
+                cancelAnimationFrame(gameLoop);
+                gameLoop = null;
+            }
+            
+            // Get dialog elements
+            let dialogBox = document.getElementById('dialog-box');
+            let dialogText = document.getElementById('dialog-text');
+            
+            // Create dialog text
+            dialogText.innerHTML = '';
+            lines.forEach(line => {
+                dialogText.innerHTML += line + '<br>';
+            });
+            
+            // Show dialog
+            dialogBox.style.display = 'block';
+        }
+
+        function showEnemyDialog(enemy) {
+            // Don't interrupt existing dialogs
+            if (document.getElementById('dialog-box').style.display === 'block') return;
+            
+            // Get a random quote
+            let quote = enemy.quotes[Math.floor(Math.random() * enemy.quotes.length)];
+            
+            // Create small dialogue above enemy
+            createParticles(
+                enemy.x + enemy.width/2,
+                enemy.y - 20,
+                1,
+                [quote],
+                12, 14, 2000, 0, 0, 0
+            );
+        }
+
+        function getEnemyQuotes(enemyType) {
+            // Enemy specific quotes
+            const quotes = {
+                "Crawler": [
+                    "Feed me...",
+                    "Your flesh is weak...",
+                    "Join us...",
+                    "Tasty bytes...",
+                    "01100100 01100101 01100001 01110100 01101000..."
+                ],
+                "Floater": [
+                    "We float in the void...",
+                    "Embrace the glitch...",
+                    "There is no escape...",
+                    "I see your code...",
+                    "Error: humanity not found"
+                ],
+                "Corrupted": [
+                    "I was once like you...",
+                    "The corruption spreads...",
+                    "Your soul is mine...",
+                    "Behind you...",
+                    "Null pointer exception: soul not found"
+                ],
+                "Glitch": [
+                    "ERROR! ERROR! ERROR!",
+                    "S͓̽y͓̽s͓̽t͓̽e͓̽m͓̽ F͓̽a͓̽i͓̽l͓̽u͓̽r͓̽e͓̽",
+                    "D̷̛̜̝͊̓è̸̼̣̓̄l̵͎̳͋e̵͉̰̒t̸̬̲͋̽̅ḙ̵̻̈́͠ ̵̧̔́͂ͅͅt̸̙̭͈̆̂̒h̷̪̟͔̾̽i̸͙̣̿̆͘s̴̢̛̲̼̐͘!̶̨̤͘",
+                    "Y̵̨̭̫̭̲̳̲̺̠̳̲͚̦̝͒͊̏̒̚͜ǫ̸̘̲̥͎͕͇̥̹̤̹̮̤̫̇̏̑ụ̸̃̿͆͂̃̿͆̍͘ ̶̣̺͔͍̬̜̈́̔̾͒̚ͅw̵̨̧̬̠̜̺̞̭̻̠̄̎̑̃̋̾͋̿͗̄̉̕͜͝i̴̧̺̟͕̙̤̲̳̯̦̫͎̝͊̽̌̎̒̄̿́́̈́̉͑ͅl̷̢̛̫̜̩͔̱͇̳̻̪͊́̔l̶͕̼̬̐̿͂́̕͝͝͝ ̶̙̻̫̠̔̎̿̊̓͜d̸͚̤̝͎͎͗̎͆̇̂̀̓̔̔̈́̚̚i̶̲̟͓̩͙̪̳̮͎̋e̶͕̪̖̖̙̱̞̽",
+                    "C̴͆ͅò̷͉r̶̤̾r̵̳̆u̵̪͛p̷̝̔t̵̲̓i̸̦̍ỏ̸̪n̶͇͝ ̸̦̇c̶͓̃o̵̠͋m̵̝̍p̶̯̀l̶̢̊e̶̼̎t̸̞̏e̴̠͒"
+                ]
+            };
+            
+            return quotes[enemyType] || [
+                "...",
+                "Die...",
+                "Your time has come...",
+                "No escape...",
+                "Fear me..."
+            ];
+        }
+
+        function showMessage(text) {
+            // Create message particles above player
+            createParticles(
+                player.x + player.width/2,
+                player.y - 30,
+                1,
+                [text],
+                14, 16, 2000, 0, 0, 0
+            );
+        }
+
+        function pauseGame() {
+            if (gameState === "playing") {
+                gameState = "paused";
+                
+                if (gameLoop) {
+                    cancelAnimationFrame(gameLoop);
+                    gameLoop = null;
+                }
+                
+                // Show pause menu if not in level up
+                if (document.getElementById('level-up').style.display !== "flex") {
+                    document.getElementById('pause-menu').style.display = "flex";
+                }
+            }
+        }
+
+        function resumeGame() {
+            if (gameState === "paused") {
+                gameState = "playing";
+                
+                // Hide pause menu
+                document.getElementById('pause-menu').style.display = "none";
+                
+                // Restart game loop
+                gameLoop = requestAnimationFrame(gameUpdate);
+            }
+        }
+
+        function gameOver() {
+            gameState = "gameOver";
+            
+            if (gameLoop) {
+                cancelAnimationFrame(gameLoop);
+                gameLoop = null;
+            }
+            // Game Over Screen            
+            document.getElementById('dialog-box').style.display = "none"; // force-close any lingering dialogs
+
+            // Update final score
+            document.getElementById('final-score').textContent = `Score: ${player.score}`;
+            
+            // Show game over screen
+            document.getElementById('game-over').style.display = "flex";
+            
+            // Create death particles
+            createParticles(player.x + player.width/2, player.y + player.height/2, 50, 
+                player.character.split('').concat(['!', '#', '*', '?', '%']), 
+                2, 5, 2000, 1, 1, 15, true);
+        }
+
+        function restartGame() {
+            // Hide game over
+            document.getElementById('game-over').style.display = "none";
+            
+            // Clear game state
+            world.platforms = [];
+            world.enemies = [];
+            world.projectiles = [];
+            world.particles = [];
+            world.items = [];
+            world.buffs = [];
+            world.backgroundElements = [];
+            
+            // Clear buff display
+            document.getElementById('buffs-container').innerHTML = '';
+            
+            // Reset player
+            player.health = player.maxHealth;
+            player.velX = 0;
+            player.velY = 0;
+            player.score = 0;
+            player.depth = 0;
+            player.damageMultiplier = 1;
+            player.speedMultiplier = 1;
+            
+            // Start game
+            startGame();
+        }
+
+        function returnToMenu() {
+            // Hide all game screens
+            document.getElementById('game-over').style.display = "none";
+            document.getElementById('pause-menu').style.display = "none";
+            document.getElementById('game-container').style.display = "none";
+            
+            // Show main menu
+            document.getElementById('main-menu').style.display = "flex";
+            
+            // Update game state
+            gameState = "menu";
+            
+            // Cancel any active game loop
+            if (gameLoop) {
+                cancelAnimationFrame(gameLoop);
+                gameLoop = null;
+            }
+        }
+    </script>
+</body>
+</html>
